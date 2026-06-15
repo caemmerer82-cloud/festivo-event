@@ -1,0 +1,21 @@
+# Dependencies
+vendor/
+node_modules/
+frontend/dist/
+
+# Environment files (keep .env.example)
+backend/.env
+.env
+
+# Uploads (user data)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Claude
+.claude/
