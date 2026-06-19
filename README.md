@@ -53,15 +53,15 @@ Open **http://localhost:5173** and log in with the system-admin account you crea
 ```bash
 # Minimal – uses server IP, no HTTPS
 sudo bash -c "
-  REPO_URL=https://github.com/YOUR_USER/eventmanager.git \
-  bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_USER/eventmanager/main/deploy/install.sh)
+  REPO_URL=https://github.com/caemmerer82-cloud/Kohlplan.git \
+  bash <(curl -fsSL https://raw.githubusercontent.com/caemmerer82-cloud/Kohlplan/main/deploy/install.sh)
 "
 
 # With a real domain + automatic Let's Encrypt SSL
 sudo bash -c "
-  REPO_URL=https://github.com/YOUR_USER/eventmanager.git \
+  REPO_URL=https://github.com/caemmerer82-cloud/Kohlplan.git \
   APP_DOMAIN=eventmanager.example.com \
-  bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_USER/eventmanager/main/deploy/install.sh)
+  bash <(curl -fsSL https://raw.githubusercontent.com/caemmerer82-cloud/Kohlplan/main/deploy/install.sh)
 "
 ```
 

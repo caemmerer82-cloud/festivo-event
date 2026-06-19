@@ -16,7 +16,7 @@ section() { echo -e "\n${GREEN}━━━ $* ━━━${NC}"; }
 [[ $EUID -ne 0 ]] && error "Please run as root (sudo)."
 
 # ── Config (edit before running, or set as env vars) ─────────────────────────
-REPO_URL="${REPO_URL:-https://github.com/YOUR_USER/eventmanager.git}"
+REPO_URL="${REPO_URL:-https://github.com/caemmerer82-cloud/Kohlplan.git}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/eventmanager}"
 APP_DOMAIN="${APP_DOMAIN:-}"          # e.g. eventmanager.example.com – leave empty for IP-only
 DB_NAME="${DB_NAME:-eventmanager}"
@@ -92,10 +92,11 @@ systemctl enable nginx
 section "Application code"
 if [[ -d "$INSTALL_DIR/.git" ]]; then
     info "Pulling latest changes…"
-    git -C "$INSTALL_DIR" pull --ff-only
+    GIT_TERMINAL_PROMPT=0 git -C "$INSTALL_DIR" pull --ff-only
 else
     info "Cloning $REPO_URL → $INSTALL_DIR"
-    git clone "$REPO_URL" "$INSTALL_DIR"
+    GIT_TERMINAL_PROMPT=0 git clone "$REPO_URL" "$INSTALL_DIR" \
+        || error "Clone fehlgeschlagen. Bei privatem Repo: SSH-Key hinterlegen und REPO_URL=git@github.com:caemmerer82-cloud/Kohlplan.git setzen."
 fi
 
 # ── Database setup ────────────────────────────────────────────────────────────
