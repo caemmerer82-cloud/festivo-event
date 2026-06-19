@@ -87,6 +87,7 @@ info "MariaDB $(mariadb --version | head -1) ready"
 section "Nginx"
 apt-get install -y -q nginx
 systemctl enable nginx
+systemctl start nginx || true
 
 # ── Clone / update repository ─────────────────────────────────────────────────
 section "Application code"
@@ -212,7 +213,7 @@ NGINX
 ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/kohlplan
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
-systemctl reload nginx
+systemctl restart nginx
 info "Nginx vhost active"
 
 # ── Optional: Let's Encrypt ───────────────────────────────────────────────────
