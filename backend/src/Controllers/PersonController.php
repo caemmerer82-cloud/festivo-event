@@ -107,6 +107,15 @@ class PersonController
             return ResponseHelper::error($response, 'Ungültige E-Mail-Adresse', 400);
         }
 
+        $existing = $this->db->fetchOne(
+            'SELECT id FROM persons WHERE tenant_id = ? AND first_name = ? AND last_name = ? AND email = ?',
+            [$tenantId, $firstName, $lastName, $email]
+        );
+
+        if ($existing) {
+            return ResponseHelper::error($response, 'Diese Person existiert bereits (Vorname, Nachname und E-Mail stimmen überein)', 409);
+        }
+
         $id = $this->db->insert(
             'INSERT INTO persons (tenant_id, first_name, last_name, gender, email, phone, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [$tenantId, $firstName, $lastName, $gender, $email, $phone ?: null, $notes ?: null]
@@ -147,6 +156,15 @@ class PersonController
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ResponseHelper::error($response, 'Ungültige E-Mail-Adresse', 400);
+        }
+
+        $existing = $this->db->fetchOne(
+            'SELECT id FROM persons WHERE tenant_id = ? AND first_name = ? AND last_name = ? AND email = ? AND id != ?',
+            [$tenantId, $firstName, $lastName, $email, $id]
+        );
+
+        if ($existing) {
+            return ResponseHelper::error($response, 'Diese Person existiert bereits (Vorname, Nachname und E-Mail stimmen überein)', 409);
         }
 
         $this->db->execute(
@@ -214,6 +232,16 @@ class PersonController
 
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $errors[] = "Zeile $i: Ungültige E-Mail $email";
+                $skipped++;
+                continue;
+            }
+
+            $existing = $this->db->fetchOne(
+                'SELECT id FROM persons WHERE tenant_id = ? AND first_name = ? AND last_name = ? AND email = ?',
+                [$tenantId, $firstName, $lastName, $email]
+            );
+
+            if ($existing) {
                 $skipped++;
                 continue;
             }
