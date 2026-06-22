@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getTenants, createTenant, updateTenant, deleteTenant, resetTenantAdminPassword } from '../../api/system';
+import { getTenants, createTenant, updateTenant, deleteTenant, resetTenantAdminPassword, changeSystemAdminPassword } from '../../api/system';
 import type { Tenant } from '../../types';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -26,6 +26,12 @@ interface ResetPasswordForm {
   confirm_password: string;
 }
 
+interface OwnPasswordForm {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
 export default function SystemDashboardPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -35,9 +41,11 @@ export default function SystemDashboardPage() {
   const [editTenant, setEditTenant] = useState<Tenant | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [resetPasswordTenant, setResetPasswordTenant] = useState<Tenant | null>(null);
+  const [showOwnPassword, setShowOwnPassword] = useState(false);
 
   const createForm = useForm<CreateTenantForm>();
   const resetForm = useForm<ResetPasswordForm>();
+  const ownPasswordForm = useForm<OwnPasswordForm>();
 
   const load = async () => {
     try {
@@ -102,6 +110,21 @@ export default function SystemDashboardPage() {
     }
   };
 
+  const handleOwnPasswordChange = async (data: OwnPasswordForm) => {
+    if (data.new_password !== data.confirm_password) {
+      ownPasswordForm.setError('confirm_password', { message: 'Passwörter stimmen nicht überein' });
+      return;
+    }
+    try {
+      await changeSystemAdminPassword(data.current_password, data.new_password);
+      toast.success('Passwort erfolgreich geändert');
+      setShowOwnPassword(false);
+      ownPasswordForm.reset();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Fehler beim Ändern des Passworts');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -117,6 +140,13 @@ export default function SystemDashboardPage() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-primary-300 text-sm">{user?.username}</span>
+          <button
+            onClick={() => setShowOwnPassword(true)}
+            className="flex items-center gap-2 text-primary-200 hover:text-white text-sm transition-colors"
+          >
+            <KeyIcon className="h-4 w-4" />
+            Passwort ändern
+          </button>
           <button
             onClick={logout}
             className="flex items-center gap-2 text-primary-200 hover:text-white text-sm transition-colors"
@@ -291,6 +321,49 @@ export default function SystemDashboardPage() {
             </button>
             <button type="submit" disabled={resetForm.formState.isSubmitting} className="btn-primary">
               Zurücksetzen
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Own Password Modal */}
+      <Modal
+        isOpen={showOwnPassword}
+        onClose={() => { setShowOwnPassword(false); ownPasswordForm.reset(); }}
+        title="Mein Passwort ändern"
+        size="sm"
+      >
+        <form onSubmit={ownPasswordForm.handleSubmit(handleOwnPasswordChange)} className="space-y-4">
+          <FormField label="Aktuelles Passwort" required error={ownPasswordForm.formState.errors.current_password?.message}>
+            <input
+              {...ownPasswordForm.register('current_password', { required: 'Pflichtfeld' })}
+              type="password"
+              className="input"
+              autoComplete="current-password"
+            />
+          </FormField>
+          <FormField label="Neues Passwort" required error={ownPasswordForm.formState.errors.new_password?.message}>
+            <input
+              {...ownPasswordForm.register('new_password', { required: 'Pflichtfeld', minLength: { value: 8, message: 'Mindestens 8 Zeichen' } })}
+              type="password"
+              className="input"
+              autoComplete="new-password"
+            />
+          </FormField>
+          <FormField label="Neues Passwort bestätigen" required error={ownPasswordForm.formState.errors.confirm_password?.message}>
+            <input
+              {...ownPasswordForm.register('confirm_password', { required: 'Pflichtfeld' })}
+              type="password"
+              className="input"
+              autoComplete="new-password"
+            />
+          </FormField>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => { setShowOwnPassword(false); ownPasswordForm.reset(); }} className="btn-secondary">
+              Abbrechen
+            </button>
+            <button type="submit" disabled={ownPasswordForm.formState.isSubmitting} className="btn-primary">
+              {ownPasswordForm.formState.isSubmitting ? 'Wird gespeichert...' : 'Passwort ändern'}
             </button>
           </div>
         </form>

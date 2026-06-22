@@ -36,3 +36,11 @@ export const resetTenantAdminPassword = async (id: number, newPassword: string) 
   const res = await api.post(`/system/tenants/${id}/reset-password`, { new_password: newPassword });
   return res.data;
 };
+
+export const changeSystemAdminPassword = async (currentPassword: string, newPassword: string) => {
+  const res = await api.post('/system/change-password', {
+    current_password: currentPassword,
+    new_password: newPassword,
+  });
+  return res.data;
+};

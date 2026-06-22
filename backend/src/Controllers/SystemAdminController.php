@@ -150,4 +150,32 @@ class SystemAdminController
 
         return ResponseHelper::success($response, $tenant);
     }
+
+    public function changePassword(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $authUser = $request->getAttribute('auth_user');
+        $adminId = (int)$authUser['sub'];
+
+        $body = $request->getParsedBody();
+        $currentPassword = $body['current_password'] ?? '';
+        $newPassword = $body['new_password'] ?? '';
+
+        if (!$currentPassword || !$newPassword) {
+            return ResponseHelper::error($response, 'Aktuelles und neues Passwort sind erforderlich', 400);
+        }
+
+        if (strlen($newPassword) < 8) {
+            return ResponseHelper::error($response, 'Neues Passwort muss mindestens 8 Zeichen lang sein', 400);
+        }
+
+        $admin = $this->db->fetchOne('SELECT * FROM system_admins WHERE id = ?', [$adminId]);
+        if (!$admin || !password_verify($currentPassword, $admin['password_hash'])) {
+            return ResponseHelper::error($response, 'Aktuelles Passwort ist falsch', 401);
+        }
+
+        $newHash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+        $this->db->execute('UPDATE system_admins SET password_hash = ? WHERE id = ?', [$newHash, $adminId]);
+
+        return ResponseHelper::success($response, null, 'Passwort erfolgreich geändert');
+    }
 }

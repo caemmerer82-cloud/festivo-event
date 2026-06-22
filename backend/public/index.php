@@ -110,6 +110,7 @@ $app->group('/api/system', function ($group) {
     $group->put('/tenants/{id}', [SystemAdminController::class, 'updateTenant']);
     $group->delete('/tenants/{id}', [SystemAdminController::class, 'deleteTenant']);
     $group->post('/tenants/{id}/reset-password', [SystemAdminController::class, 'resetTenantAdminPassword']);
+    $group->post('/change-password', [SystemAdminController::class, 'changePassword']);
 })->add(new AuthMiddleware(requireSystemAdmin: true));
 
 // Public RSVP routes (no auth)
