@@ -15,6 +15,24 @@ type Step = 'loading' | 'error' | 'expired' | 'invitation' | 'form' | 'confirmed
 const t = (texts: Record<string, string>, key: string, fallback: string) =>
   texts[key] !== undefined && texts[key] !== '' ? texts[key] : fallback;
 
+const Wrapper = ({ ev, children }: { ev?: RsvpInvitation['event']; children: React.ReactNode }) => (
+  <div className="min-h-screen bg-gray-50">
+    <Toaster position="top-center" />
+    {ev?.banner_url && (
+      <div className="w-full bg-gray-100 flex justify-center">
+        <img
+          src={ev.banner_url}
+          alt={ev.name}
+          className="max-w-xl w-full object-contain"
+        />
+      </div>
+    )}
+    <div className="max-w-xl mx-auto px-4 py-8">
+      {children}
+    </div>
+  </div>
+);
+
 export default function RsvpPage() {
   const { token } = useParams<{ token: string }>();
   const [step, setStep] = useState<Step>('loading');
@@ -116,24 +134,6 @@ export default function RsvpPage() {
 
   const ev = invitation?.event;
 
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen bg-gray-50">
-      <Toaster position="top-center" />
-      {ev?.banner_url && (
-        <div className="w-full bg-gray-100 flex justify-center">
-          <img
-            src={ev.banner_url}
-            alt={ev.name}
-            className="max-w-xl w-full object-contain"
-          />
-        </div>
-      )}
-      <div className="max-w-xl mx-auto px-4 py-8">
-        {children}
-      </div>
-    </div>
-  );
-
   if (step === 'loading') return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="animate-spin h-10 w-10 border-b-2 border-indigo-600 rounded-full" />
@@ -141,7 +141,7 @@ export default function RsvpPage() {
   );
 
   if (step === 'error') return (
-    <Wrapper>
+    <Wrapper ev={ev}>
       <div className="card text-center py-12">
         <XCircleIcon className="h-14 w-14 text-red-400 mx-auto mb-4" />
         <h2 className="text-xl font-bold text-gray-900 mb-2">Fehler</h2>
@@ -151,7 +151,7 @@ export default function RsvpPage() {
   );
 
   if (step === 'expired') return (
-    <Wrapper>
+    <Wrapper ev={ev}>
       <div className="card text-center py-12">
         <XCircleIcon className="h-14 w-14 text-amber-400 mx-auto mb-4" />
         <h2 className="text-xl font-bold text-gray-900 mb-2">Link abgelaufen</h2>
@@ -161,7 +161,7 @@ export default function RsvpPage() {
   );
 
   if (step === 'confirmed') return (
-    <Wrapper>
+    <Wrapper ev={ev}>
       <div className="card text-center py-12">
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <CheckCircleIcon className="h-10 w-10 text-green-600" />
@@ -177,7 +177,7 @@ export default function RsvpPage() {
   );
 
   if (step === 'declined') return (
-    <Wrapper>
+    <Wrapper ev={ev}>
       <div className="card text-center py-12">
         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <XCircleIcon className="h-10 w-10 text-gray-400" />
@@ -195,7 +195,7 @@ export default function RsvpPage() {
   if (!invitation || !ev) return null;
 
   if (step === 'form') return (
-    <Wrapper>
+    <Wrapper ev={ev}>
       <div className="mb-4">
         <button onClick={() => setStep('invitation')} className="text-sm text-indigo-600 hover:underline flex items-center gap-1">
           ← Zurück
@@ -231,7 +231,7 @@ export default function RsvpPage() {
 
   // Main invitation view
   return (
-    <Wrapper>
+    <Wrapper ev={ev}>
       {/* Greeting */}
       <div
         className="mb-5 prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-gray-900 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-gray-800 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-gray-800 [&_h4]:text-base [&_h4]:font-semibold [&_h4]:text-gray-700 [&_p]:text-gray-600 [&_p]:text-sm"
