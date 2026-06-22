@@ -62,7 +62,7 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-primary-950 px-4 py-3">
+      <div className="lg:hidden fixed inset-x-0 top-0 z-30 flex items-center justify-between bg-primary-950 px-4 h-14">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-primary-400 rounded-lg flex items-center justify-center">
             <CalendarIcon className="h-4 w-4 text-white" />

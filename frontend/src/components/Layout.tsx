@@ -10,7 +10,7 @@ export default function Layout({ children, title, actions }: LayoutProps) {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 pt-14 lg:pt-0">
         {(title || actions) && (
           <header className="bg-white border-b border-gray-200 px-4 sm:px-8 py-4 sm:py-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
