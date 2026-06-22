@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  Eventmanager – 1-Click Installer for Debian 12 (Bookworm)
+#  Festivo-Event – 1-Click Installer for Debian 12 (Bookworm)
 #  Usage:  curl -fsSL https://raw.githubusercontent.com/YOUR_USER/festivo-event/main/deploy/install.sh | sudo bash
 # =============================================================================
 set -euo pipefail
@@ -18,7 +18,7 @@ section() { echo -e "\n${GREEN}━━━ $* ━━━${NC}"; }
 # ── Config (edit before running, or set as env vars) ─────────────────────────
 REPO_URL="${REPO_URL:-https://github.com/caemmerer82-cloud/Festivo-Event.git}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/festivo-event}"
-APP_DOMAIN="${APP_DOMAIN:-}"          # e.g. festivo-event.example.com – leave empty for IP-only
+APP_DOMAIN="${APP_DOMAIN:-}"          # e.g. "festivo-event.de,www.festivo-event.de" – leave empty for IP-only
 DB_NAME="${DB_NAME:-festivo_event}"
 DB_USER="${DB_USER:-festivo_event}"
 DB_PASS="${DB_PASS:-$(openssl rand -hex 16)}"
@@ -114,7 +114,13 @@ info "Database '$DB_NAME' ready"
 # ── Backend .env ──────────────────────────────────────────────────────────────
 section "Backend configuration"
 PUBLIC_URL="https://$(hostname -I | awk '{print $1}')"
-[[ -n "$APP_DOMAIN" ]] && PUBLIC_URL="https://$APP_DOMAIN"
+ALL_ORIGINS="$PUBLIC_URL"
+if [[ -n "$APP_DOMAIN" ]]; then
+    PUBLIC_URL="https://$(echo "$APP_DOMAIN" | cut -d',' -f1)"
+    ALL_ORIGINS=""
+    for d in ${APP_DOMAIN//,/ }; do ALL_ORIGINS+="https://$d,"; done
+    ALL_ORIGINS="${ALL_ORIGINS%,}"
+fi
 
 cat > "$BACKEND_DIR/.env" <<ENV
 DB_HOST=127.0.0.1
@@ -130,7 +136,7 @@ UPLOAD_DIR=${UPLOAD_DIR}
 MAX_UPLOAD_SIZE=10485760
 
 APP_URL=${PUBLIC_URL}
-FRONTEND_URL=${PUBLIC_URL}
+FRONTEND_URL=${ALL_ORIGINS}
 ENV
 info "Backend .env written"
 
@@ -173,7 +179,12 @@ info "PHP-FPM pool configured"
 
 # ── Nginx vhost ───────────────────────────────────────────────────────────────
 section "Nginx vhost"
-SERVER_NAME="${APP_DOMAIN:-_}"
+# APP_DOMAIN may be a comma-separated list, e.g. "festivo-event.de,www.festivo-event.de"
+SERVER_NAME="${APP_DOMAIN//,/ }"
+SERVER_NAME="${SERVER_NAME:-_}"
+CERTBOT_DOMAIN_ARGS=""
+for d in ${APP_DOMAIN//,/ }; do CERTBOT_DOMAIN_ARGS+="-d $d "; done
+PRIMARY_DOMAIN="$(echo "$APP_DOMAIN" | cut -d',' -f1)"
 cat > "$NGINX_CONF" <<NGINX
 server {
     listen 80;
@@ -218,9 +229,9 @@ if [[ -n "$APP_DOMAIN" ]]; then
     if ! command -v certbot &>/dev/null; then
         apt-get install -y -q certbot python3-certbot-nginx
     fi
-    certbot --nginx -d "$APP_DOMAIN" --non-interactive --agree-tos -m "admin@${APP_DOMAIN}" || \
-        warn "Certbot failed – run manually: certbot --nginx -d $APP_DOMAIN"
-    PUBLIC_URL="https://$APP_DOMAIN"
+    certbot --nginx $CERTBOT_DOMAIN_ARGS --non-interactive --agree-tos -m "admin@${PRIMARY_DOMAIN}" || \
+        warn "Certbot failed – run manually: certbot --nginx $CERTBOT_DOMAIN_ARGS"
+    PUBLIC_URL="https://$PRIMARY_DOMAIN"
 else
     section "SSL (self-signed certificate – no domain set)"
     SSL_DIR="/etc/ssl/festivo-event"
@@ -289,7 +300,7 @@ echo ""
 echo -e "  ${YELLOW}Next steps:${NC}"
 echo "  1. Create your first admin account via the web interface."
 if [[ -n "$APP_DOMAIN" ]]; then
-    echo "  2. SSL should be configured. Verify at https://$APP_DOMAIN"
+    echo "  2. SSL should be configured. Verify at https://$PRIMARY_DOMAIN"
 else
     echo "  2. To enable HTTPS, set APP_DOMAIN and re-run, or run certbot manually."
 fi
