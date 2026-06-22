@@ -232,6 +232,35 @@ if [[ -n "$APP_DOMAIN" ]]; then
     certbot --nginx $CERTBOT_DOMAIN_ARGS --non-interactive --agree-tos -m "admin@${PRIMARY_DOMAIN}" || \
         warn "Certbot failed – run manually: certbot --nginx $CERTBOT_DOMAIN_ARGS"
     PUBLIC_URL="https://$PRIMARY_DOMAIN"
+
+    # Certbot's generated HTTP block returns 404 for any Host that isn't one
+    # of the configured domains, which blocks access via the local IP/LAN.
+    # Add a separate catch-all vhost so the server stays reachable internally.
+    cat > /etc/nginx/sites-available/festivo-event-internal <<NGINX
+server {
+    listen 80 default_server;
+    server_name _;
+
+    root ${FRONTEND_DIST};
+    index index.html;
+
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+
+    location /api/ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm-festivo-event.sock;
+        fastcgi_param SCRIPT_FILENAME ${BACKEND_DIR}/public/index.php;
+        fastcgi_param REQUEST_URI \$request_uri;
+    }
+
+    client_max_body_size 11M;
+}
+NGINX
+    ln -sf /etc/nginx/sites-available/festivo-event-internal /etc/nginx/sites-enabled/festivo-event-internal
+    nginx -t && systemctl reload nginx
+    info "Internal LAN access via http://$(hostname -I | awk '{print $1}') still works"
 else
     section "SSL (self-signed certificate – no domain set)"
     SSL_DIR="/etc/ssl/festivo-event"
