@@ -1,7 +1,8 @@
--- Event Manager Database Schema
+-- Festivo-Event Database Schema
 -- MariaDB / MySQL compatible
 
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS tenant_texts;
 DROP TABLE IF EXISTS mail_log;
 DROP TABLE IF EXISTS guest_answers;
 DROP TABLE IF EXISTS event_guests;
@@ -73,6 +74,7 @@ CREATE TABLE persons (
   tenant_id INT NOT NULL,
   first_name VARCHAR(100) NOT NULL,
   last_name VARCHAR(100) NOT NULL,
+  gender ENUM('m', 'f', 'd') NULL,
   email VARCHAR(255) NOT NULL,
   phone VARCHAR(50),
   notes TEXT,
@@ -159,6 +161,19 @@ CREATE TABLE mail_log (
   status ENUM('sent', 'failed') DEFAULT 'sent',
   error_message TEXT,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+-- Event-specific RSVP page text customisation
+CREATE TABLE tenant_texts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tenant_id INT NOT NULL,
+  event_id INT NOT NULL,
+  text_key VARCHAR(100) NOT NULL,
+  text_value TEXT NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+  UNIQUE KEY (tenant_id, event_id, text_key)
 );
 
 -- Default system admin (password: password - change immediately!)
