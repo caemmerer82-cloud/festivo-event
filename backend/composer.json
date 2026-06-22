@@ -1,6 +1,6 @@
 {
-  "name": "kohlplan/backend",
-  "description": "Kohlplan Backend API",
+  "name": "festivo-event/backend",
+  "description": "Festivo-Event Backend API",
   "type": "project",
   "require": {
     "php": ">=8.0",

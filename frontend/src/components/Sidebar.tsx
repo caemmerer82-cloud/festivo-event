@@ -60,7 +60,7 @@ export default function Sidebar() {
             <CalendarIcon className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="text-white font-semibold text-sm leading-none">Kohlplan</p>
+            <p className="text-white font-semibold text-sm leading-none">Festivo-Event</p>
             <p className="text-primary-400 text-xs mt-0.5 truncate max-w-[140px]">{user?.tenant_name}</p>
           </div>
         </div>

@@ -147,8 +147,8 @@ class SmtpController
             $mail->setFrom($smtp['from_email'], $smtp['from_name']);
             $mail->addAddress($testEmail);
             $mail->isHTML(true);
-            $mail->Subject = 'SMTP-Test - Kohlplan';
-            $mail->Body = '<p>Dies ist eine Test-E-Mail vom Kohlplan System.</p>';
+            $mail->Subject = 'SMTP-Test - Festivo-Event';
+            $mail->Body = '<p>Dies ist eine Test-E-Mail vom Festivo-Event System.</p>';
             $mail->CharSet = 'UTF-8';
             $mail->send();
 

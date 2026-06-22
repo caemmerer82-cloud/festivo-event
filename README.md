@@ -1,4 +1,4 @@
-# Kohlplan
+# Festivo-Event
 
 A multi-tenant event management platform with RSVP, guest management, email templates, and customisable invitation pages.
 
@@ -23,8 +23,8 @@ A multi-tenant event management platform with RSVP, guest management, email temp
 
 ### 1 – Database
 ```bash
-mysql -u root -e "CREATE DATABASE kohlplan CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root kohlplan < database/schema.sql
+mysql -u root -e "CREATE DATABASE festivo_event CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root festivo_event < database/schema.sql
 ```
 
 ### 2 – Backend
@@ -53,23 +53,23 @@ Open **http://localhost:5173** and log in with the system-admin account you crea
 ```bash
 # Minimal – uses server IP, no HTTPS
 sudo bash -c "
-  REPO_URL=https://github.com/caemmerer82-cloud/Kohlplan.git \
-  bash <(curl -fsSL https://raw.githubusercontent.com/caemmerer82-cloud/Kohlplan/main/deploy/install.sh)
+  REPO_URL=https://github.com/caemmerer82-cloud/Festivo-Event.git \
+  bash <(curl -fsSL https://raw.githubusercontent.com/caemmerer82-cloud/Festivo-Event/main/deploy/install.sh)
 "
 
 # With a real domain + automatic Let's Encrypt SSL
 sudo bash -c "
-  REPO_URL=https://github.com/caemmerer82-cloud/Kohlplan.git \
-  APP_DOMAIN=kohlplan.example.com \
-  bash <(curl -fsSL https://raw.githubusercontent.com/caemmerer82-cloud/Kohlplan/main/deploy/install.sh)
+  REPO_URL=https://github.com/caemmerer82-cloud/Festivo-Event.git \
+  APP_DOMAIN=festivo-event.example.com \
+  bash <(curl -fsSL https://raw.githubusercontent.com/caemmerer82-cloud/Festivo-Event/main/deploy/install.sh)
 "
 ```
 
 The installer will:
 1. Install nginx, PHP 8.2-FPM, MariaDB, Node.js 20, Composer
-2. Clone the repository to `/opt/kohlplan`
+2. Clone the repository to `/opt/festivo-event`
 3. Create database + user with a random password
-4. Write `/opt/kohlplan/backend/.env`
+4. Write `/opt/festivo-event/backend/.env`
 5. Install PHP & npm dependencies, build the React frontend
 6. Configure nginx vhost and PHP-FPM pool
 7. Optionally obtain a Let's Encrypt certificate
@@ -79,17 +79,17 @@ The installer will:
 | Variable | Default | Description |
 |---|---|---|
 | `REPO_URL` | *(required)* | Git repository URL |
-| `INSTALL_DIR` | `/opt/kohlplan` | Target directory |
+| `INSTALL_DIR` | `/opt/festivo-event` | Target directory |
 | `APP_DOMAIN` | *(empty → IP)* | Domain name for nginx + certbot |
-| `DB_NAME` | `kohlplan` | MariaDB database name |
-| `DB_USER` | `kohlplan` | MariaDB user |
+| `DB_NAME` | `festivo_event` | MariaDB database name |
+| `DB_USER` | `festivo_event` | MariaDB user |
 | `DB_PASS` | *(random)* | MariaDB password |
 | `JWT_SECRET` | *(random)* | JWT signing secret |
 
 ### Updating
 
 ```bash
-sudo bash /opt/kohlplan/deploy/update.sh
+sudo bash /opt/festivo-event/deploy/update.sh
 ```
 
 This pulls the latest code, reinstalls dependencies, rebuilds the frontend, and applies any new database migrations placed in `database/migrations/`.
@@ -99,7 +99,7 @@ This pulls the latest code, reinstalls dependencies, rebuilds the frontend, and 
 ## Project structure
 
 ```
-kohlplan/
+festivo-event/
 ├── backend/              PHP 8 Slim 4 API
 │   ├── public/           Document root (index.php)
 │   ├── src/

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 #  Eventmanager – 1-Click Installer for Debian 12 (Bookworm)
-#  Usage:  curl -fsSL https://raw.githubusercontent.com/YOUR_USER/kohlplan/main/deploy/install.sh | sudo bash
+#  Usage:  curl -fsSL https://raw.githubusercontent.com/YOUR_USER/festivo-event/main/deploy/install.sh | sudo bash
 # =============================================================================
 set -euo pipefail
 
@@ -16,11 +16,11 @@ section() { echo -e "\n${GREEN}━━━ $* ━━━${NC}"; }
 [[ $EUID -ne 0 ]] && error "Please run as root (sudo)."
 
 # ── Config (edit before running, or set as env vars) ─────────────────────────
-REPO_URL="${REPO_URL:-https://github.com/caemmerer82-cloud/Kohlplan.git}"
-INSTALL_DIR="${INSTALL_DIR:-/opt/kohlplan}"
-APP_DOMAIN="${APP_DOMAIN:-}"          # e.g. kohlplan.example.com – leave empty for IP-only
-DB_NAME="${DB_NAME:-kohlplan}"
-DB_USER="${DB_USER:-kohlplan}"
+REPO_URL="${REPO_URL:-https://github.com/caemmerer82-cloud/Festivo-Event.git}"
+INSTALL_DIR="${INSTALL_DIR:-/opt/festivo-event}"
+APP_DOMAIN="${APP_DOMAIN:-}"          # e.g. festivo-event.example.com – leave empty for IP-only
+DB_NAME="${DB_NAME:-festivo_event}"
+DB_USER="${DB_USER:-festivo_event}"
 DB_PASS="${DB_PASS:-$(openssl rand -hex 16)}"
 JWT_SECRET="${JWT_SECRET:-$(openssl rand -hex 32)}"
 PHP_VERSION="8.2"
@@ -30,7 +30,7 @@ NODE_MAJOR="20"
 BACKEND_DIR="$INSTALL_DIR/backend"
 FRONTEND_DIST="$INSTALL_DIR/frontend/dist"
 UPLOAD_DIR="$INSTALL_DIR/uploads"
-NGINX_CONF="/etc/nginx/sites-available/kohlplan"
+NGINX_CONF="/etc/nginx/sites-available/festivo-event"
 
 section "System update & base packages"
 apt-get update -q
@@ -97,7 +97,7 @@ if [[ -d "$INSTALL_DIR/.git" ]]; then
 else
     info "Cloning $REPO_URL → $INSTALL_DIR"
     GIT_TERMINAL_PROMPT=0 git clone "$REPO_URL" "$INSTALL_DIR" \
-        || error "Clone fehlgeschlagen. Bei privatem Repo: SSH-Key hinterlegen und REPO_URL=git@github.com:caemmerer82-cloud/Kohlplan.git setzen."
+        || error "Clone fehlgeschlagen. Bei privatem Repo: SSH-Key hinterlegen und REPO_URL=git@github.com:caemmerer82-cloud/Festivo-Event.git setzen."
 fi
 
 # ── Database setup ────────────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ info "Database '$DB_NAME' ready"
 
 # ── Backend .env ──────────────────────────────────────────────────────────────
 section "Backend configuration"
-PUBLIC_URL="http://$(hostname -I | awk '{print $1}')"
+PUBLIC_URL="https://$(hostname -I | awk '{print $1}')"
 [[ -n "$APP_DOMAIN" ]] && PUBLIC_URL="https://$APP_DOMAIN"
 
 cat > "$BACKEND_DIR/.env" <<ENV
@@ -154,11 +154,11 @@ chmod -R 770 "$UPLOAD_DIR"
 
 # ── PHP-FPM pool ──────────────────────────────────────────────────────────────
 section "PHP-FPM pool"
-cat > "/etc/php/${PHP_VERSION}/fpm/pool.d/kohlplan.conf" <<FPM
-[kohlplan]
+cat > "/etc/php/${PHP_VERSION}/fpm/pool.d/festivo-event.conf" <<FPM
+[festivo-event]
 user  = www-data
 group = www-data
-listen = /run/php/php${PHP_VERSION}-fpm-kohlplan.sock
+listen = /run/php/php${PHP_VERSION}-fpm-festivo-event.sock
 listen.owner = www-data
 listen.group = www-data
 pm = dynamic
@@ -166,7 +166,7 @@ pm.max_children     = 10
 pm.start_servers    = 2
 pm.min_spare_servers = 1
 pm.max_spare_servers = 4
-php_admin_value[error_log] = /var/log/php-kohlplan-error.log
+php_admin_value[error_log] = /var/log/php-festivo-event-error.log
 FPM
 systemctl restart "php${PHP_VERSION}-fpm"
 info "PHP-FPM pool configured"
@@ -190,7 +190,7 @@ server {
     # API → PHP-FPM (Slim 4 – all requests go to index.php)
     location /api/ {
         include fastcgi_params;
-        fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm-kohlplan.sock;
+        fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm-festivo-event.sock;
         fastcgi_param SCRIPT_FILENAME ${BACKEND_DIR}/public/index.php;
         fastcgi_param REQUEST_URI \$request_uri;
     }
@@ -202,17 +202,17 @@ server {
     # Upload size
     client_max_body_size 11M;
 
-    access_log /var/log/nginx/kohlplan-access.log;
-    error_log  /var/log/nginx/kohlplan-error.log;
+    access_log /var/log/nginx/festivo-event-access.log;
+    error_log  /var/log/nginx/festivo-event-error.log;
 }
 NGINX
-ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/kohlplan
+ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/festivo-event
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
 systemctl restart nginx
 info "Nginx vhost active"
 
-# ── Optional: Let's Encrypt ───────────────────────────────────────────────────
+# ── HTTPS ──────────────────────────────────────────────────────────────────────
 if [[ -n "$APP_DOMAIN" ]]; then
     section "SSL (Let's Encrypt)"
     if ! command -v certbot &>/dev/null; then
@@ -220,6 +220,60 @@ if [[ -n "$APP_DOMAIN" ]]; then
     fi
     certbot --nginx -d "$APP_DOMAIN" --non-interactive --agree-tos -m "admin@${APP_DOMAIN}" || \
         warn "Certbot failed – run manually: certbot --nginx -d $APP_DOMAIN"
+    PUBLIC_URL="https://$APP_DOMAIN"
+else
+    section "SSL (self-signed certificate – no domain set)"
+    SSL_DIR="/etc/ssl/festivo-event"
+    mkdir -p "$SSL_DIR"
+    SERVER_IP="$(hostname -I | awk '{print $1}')"
+    if [[ ! -f "$SSL_DIR/fullchain.pem" ]]; then
+        openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+            -keyout "$SSL_DIR/privkey.pem" \
+            -out "$SSL_DIR/fullchain.pem" \
+            -subj "/CN=${SERVER_IP}" \
+            -addext "subjectAltName=IP:${SERVER_IP}" 2>/dev/null
+        info "Self-signed certificate created for $SERVER_IP (browsers will show a warning – that's expected without a real domain)"
+    fi
+
+    cat > "$NGINX_CONF" <<NGINX
+server {
+    listen 80;
+    server_name ${SERVER_NAME};
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name ${SERVER_NAME};
+
+    ssl_certificate     ${SSL_DIR}/fullchain.pem;
+    ssl_certificate_key ${SSL_DIR}/privkey.pem;
+
+    root ${FRONTEND_DIST};
+    index index.html;
+
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+
+    location /api/ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm-festivo-event.sock;
+        fastcgi_param SCRIPT_FILENAME ${BACKEND_DIR}/public/index.php;
+        fastcgi_param REQUEST_URI \$request_uri;
+    }
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    client_max_body_size 11M;
+
+    access_log /var/log/nginx/festivo-event-access.log;
+    error_log  /var/log/nginx/festivo-event-error.log;
+}
+NGINX
+    nginx -t && systemctl restart nginx
+    PUBLIC_URL="https://${SERVER_IP}"
+    info "HTTPS active on port 443 (self-signed), HTTP redirects automatically"
 fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
