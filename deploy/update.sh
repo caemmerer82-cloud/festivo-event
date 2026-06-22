@@ -13,6 +13,7 @@ BACKEND_DIR="$INSTALL_DIR/backend"
 PHP_VERSION="8.2"
 
 info "Pulling latest code…"
+git -C "$INSTALL_DIR" config core.fileMode false
 git -C "$INSTALL_DIR" pull --ff-only
 
 info "Updating PHP dependencies…"

@@ -93,11 +93,15 @@ systemctl start nginx || true
 section "Application code"
 if [[ -d "$INSTALL_DIR/.git" ]]; then
     info "Pulling latest changes…"
+    git -C "$INSTALL_DIR" config core.fileMode false
     GIT_TERMINAL_PROMPT=0 git -C "$INSTALL_DIR" pull --ff-only
 else
     info "Cloning $REPO_URL → $INSTALL_DIR"
     GIT_TERMINAL_PROMPT=0 git clone "$REPO_URL" "$INSTALL_DIR" \
         || error "Clone fehlgeschlagen. Bei privatem Repo: SSH-Key hinterlegen und REPO_URL=git@github.com:caemmerer82-cloud/festivo-event.git setzen."
+    # chmod -R below changes file permission bits, which git tracks by default
+    # and would otherwise show every file as "modified" on the next pull.
+    git -C "$INSTALL_DIR" config core.fileMode false
 fi
 
 # ── Database setup ────────────────────────────────────────────────────────────
