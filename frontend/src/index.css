@@ -2,10 +2,150 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Theme palettes ──────────────────────────────────────────────────────── */
+/* Default (indigo) */
+:root,
+[data-theme="default"] {
+  --color-primary-50: 238 242 255;
+  --color-primary-100: 224 231 255;
+  --color-primary-200: 199 210 254;
+  --color-primary-300: 165 180 252;
+  --color-primary-400: 129 140 248;
+  --color-primary-500: 99 102 241;
+  --color-primary-600: 79 70 229;
+  --color-primary-700: 67 56 202;
+  --color-primary-800: 55 48 163;
+  --color-primary-900: 49 46 129;
+  --color-primary-950: 30 27 75;
+}
+
+/* Sommerfarben (gelb/amber) */
+[data-theme="summer"] {
+  --color-primary-50: 255 251 235;
+  --color-primary-100: 254 243 199;
+  --color-primary-200: 253 230 138;
+  --color-primary-300: 252 211 77;
+  --color-primary-400: 251 191 36;
+  --color-primary-500: 245 158 11;
+  --color-primary-600: 217 119 6;
+  --color-primary-700: 180 83 9;
+  --color-primary-800: 146 64 14;
+  --color-primary-900: 120 53 15;
+  --color-primary-950: 69 26 3;
+}
+
+/* Türkis */
+[data-theme="turquoise"] {
+  --color-primary-50: 240 253 250;
+  --color-primary-100: 204 251 241;
+  --color-primary-200: 153 246 228;
+  --color-primary-300: 94 234 212;
+  --color-primary-400: 45 212 191;
+  --color-primary-500: 20 184 166;
+  --color-primary-600: 13 148 136;
+  --color-primary-700: 15 118 110;
+  --color-primary-800: 17 94 89;
+  --color-primary-900: 19 78 74;
+  --color-primary-950: 4 47 46;
+}
+
+/* Futuristisch (Magenta/Violett) */
+[data-theme="futuristic"] {
+  --color-primary-50: 253 244 255;
+  --color-primary-100: 250 232 255;
+  --color-primary-200: 245 208 254;
+  --color-primary-300: 240 171 252;
+  --color-primary-400: 232 121 249;
+  --color-primary-500: 217 70 239;
+  --color-primary-600: 192 38 211;
+  --color-primary-700: 162 28 175;
+  --color-primary-800: 134 25 143;
+  --color-primary-900: 112 26 117;
+  --color-primary-950: 74 4 78;
+}
+
+/* Darkmode (Blau) */
+[data-theme="dark"] {
+  --color-primary-50: 239 246 255;
+  --color-primary-100: 219 234 254;
+  --color-primary-200: 191 219 254;
+  --color-primary-300: 147 197 253;
+  --color-primary-400: 96 165 250;
+  --color-primary-500: 59 130 246;
+  --color-primary-600: 37 99 235;
+  --color-primary-700: 29 78 216;
+  --color-primary-800: 30 64 175;
+  --color-primary-900: 30 58 138;
+  --color-primary-950: 23 37 84;
+}
+
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
   }
+}
+
+/* ── Dark mode surface overrides ─────────────────────────────────────────── */
+/* The app's "chrome" (cards, inputs, page backgrounds) is built with fixed
+   gray/white Tailwind utilities rather than theme variables, since most
+   pages never needed dark surfaces before. Rather than touching every page,
+   override the handful of shared utility/component classes here so dark
+   mode looks consistent everywhere without a large rewrite. */
+[data-theme="dark"] body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+[data-theme="dark"] .card {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+[data-theme="dark"] .input {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+[data-theme="dark"] .input::placeholder {
+  color: #64748b;
+}
+[data-theme="dark"] .input:disabled {
+  background-color: #0f172a;
+  color: #64748b;
+}
+[data-theme="dark"] .label {
+  color: #cbd5e1;
+}
+[data-theme="dark"] .btn-secondary {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+[data-theme="dark"] .btn-secondary:hover {
+  background-color: #334155;
+}
+[data-theme="dark"] .bg-white {
+  background-color: #1e293b;
+}
+[data-theme="dark"] .bg-gray-50 {
+  background-color: #0f172a;
+}
+[data-theme="dark"] .bg-gray-100 {
+  background-color: #334155;
+}
+[data-theme="dark"] .text-gray-900 {
+  color: #f1f5f9;
+}
+[data-theme="dark"] .text-gray-700,
+[data-theme="dark"] .text-gray-600 {
+  color: #cbd5e1;
+}
+[data-theme="dark"] .text-gray-500,
+[data-theme="dark"] .text-gray-400 {
+  color: #94a3b8;
+}
+[data-theme="dark"] .border-gray-200,
+[data-theme="dark"] .border-gray-100,
+[data-theme="dark"] .border-gray-300 {
+  border-color: #334155;
 }
 
 @layer components {

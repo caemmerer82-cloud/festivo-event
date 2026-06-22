@@ -14,6 +14,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
+import ThemeSwitcher from './ThemeSwitcher';
 
 export default function Sidebar() {
   const { tenant } = useParams<{ tenant: string }>();
@@ -137,6 +138,11 @@ export default function Sidebar() {
             Bugreport
           </a>
         </nav>
+
+        {/* Theme */}
+        <div className="px-3 pt-3">
+          <ThemeSwitcher />
+        </div>
 
         {/* User */}
         <div className="px-3 py-4 border-t border-primary-800">

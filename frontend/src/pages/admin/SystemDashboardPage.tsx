@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import FormField from '../../components/FormField';
+import ThemeSwitcher from '../../components/ThemeSwitcher';
 import {
   PlusIcon, PencilIcon, TrashIcon, KeyIcon, CalendarIcon,
   UsersIcon, ArrowRightOnRectangleIcon, BuildingOfficeIcon,
@@ -139,6 +140,7 @@ export default function SystemDashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+          <ThemeSwitcher />
           <span className="text-primary-300 text-sm">{user?.username}</span>
           <button
             onClick={() => setShowOwnPassword(true)}
